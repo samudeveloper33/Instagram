@@ -1,0 +1,442 @@
+{% extends 'base.html' %}
+
+{% block title %}Notifications - Instagram Clone{% endblock %}
+
+{% block extra_css %}
+<style>
+    .notifications-container {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 40px 20px;
+    }
+
+    .notifications-header {
+        margin-bottom: 32px;
+    }
+
+    .notifications-header h1 {
+        font-size: 24px;
+        font-weight: 700;
+        margin-bottom: 0;
+    }
+
+    .activity-empty-state {
+        text-align: center;
+        padding: 40px 20px;
+        margin-bottom: 40px;
+    }
+
+    .activity-icon {
+        width: 96px;
+        height: 96px;
+        border: 3px solid var(--text-primary);
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 20px;
+    }
+
+    .activity-icon i {
+        font-size: 48px;
+        color: var(--text-primary);
+    }
+
+    .activity-title {
+        font-size: 16px;
+        font-weight: 600;
+        margin-bottom: 12px;
+        color: var(--text-primary);
+    }
+
+    .activity-description {
+        font-size: 14px;
+        color: var(--text-secondary);
+        max-width: 350px;
+        margin: 0 auto;
+    }
+
+    /* Notifications List */
+    .notifications-list {
+        margin-bottom: 40px;
+    }
+
+    .notification-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 0;
+        border-bottom: 1px solid var(--border-color);
+        transition: background-color 0.2s;
+        cursor: pointer;
+    }
+
+    .notification-item:hover {
+        background-color: var(--secondary-bg);
+        padding-left: 12px;
+        padding-right: 12px;
+        margin-left: -12px;
+        margin-right: -12px;
+        border-radius: 4px;
+    }
+
+    .notification-item.unread {
+        background-color: rgba(0, 149, 246, 0.05);
+    }
+
+    .notification-avatar {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        object-fit: cover;
+        background: var(--border-color);
+    }
+
+    .notification-content {
+        flex: 1;
+    }
+
+    .notification-text {
+        font-size: 14px;
+        color: var(--text-primary);
+        line-height: 1.4;
+    }
+
+    .notification-text .username {
+        font-weight: 600;
+    }
+
+    .notification-text .action {
+        font-weight: 400;
+    }
+
+    .notification-time {
+        font-size: 12px;
+        color: var(--text-secondary);
+        margin-top: 4px;
+    }
+
+    .notification-thumbnail {
+        width: 44px;
+        height: 44px;
+        border-radius: 4px;
+        object-fit: cover;
+        background: var(--border-color);
+    }
+
+    .notification-follow-btn {
+        background: var(--link-color);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 7px 20px;
+        font-weight: 600;
+        font-size: 14px;
+        cursor: pointer;
+    }
+
+    .notification-follow-btn.following {
+        background: var(--secondary-bg);
+        color: var(--text-primary);
+        border: 1px solid var(--border-color);
+    }
+
+    .suggestions-section {
+        margin-top: 40px;
+    }
+
+    .suggestions-title {
+        font-size: 16px;
+        font-weight: 600;
+        margin-bottom: 16px;
+    }
+
+    .suggestion-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 8px 0;
+        margin-bottom: 12px;
+    }
+
+    .suggestion-avatar {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        object-fit: cover;
+        background: var(--border-color);
+    }
+
+    .suggestion-info {
+        flex: 1;
+    }
+
+    .suggestion-username {
+        font-weight: 600;
+        font-size: 14px;
+        color: var(--text-primary);
+        display: block;
+        margin-bottom: 2px;
+    }
+
+    .suggestion-name {
+        font-size: 14px;
+        color: var(--text-secondary);
+    }
+
+    .suggestion-subtitle {
+        font-size: 12px;
+        color: var(--text-secondary);
+    }
+
+    .follow-button {
+        background: var(--link-color);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 7px 24px;
+        font-weight: 600;
+        font-size: 14px;
+        cursor: pointer;
+        transition: opacity 0.2s;
+    }
+
+    .follow-button:hover {
+        opacity: 0.8;
+    }
+
+    .follow-button.following {
+        background: var(--secondary-bg);
+        color: var(--text-primary);
+        border: 1px solid var(--border-color);
+    }
+
+    .loading {
+        text-align: center;
+        padding: 40px;
+        color: var(--text-secondary);
+    }
+
+    @media (max-width: 768px) {
+        .notifications-container {
+            border-radius: 0;
+            border-left: none;
+            border-right: none;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="notifications-container">
+    <div class="notifications-header">
+        <h1>Notifications</h1>
+    </div>
+
+    <!-- Notifications List -->
+    <div id="notificationsList">
+        <div class="loading">Loading notifications...</div>
+    </div>
+
+    <!-- Empty state (shown when no notifications) -->
+    <div class="activity-empty-state" id="emptyState" style="display: none;">
+        <div class="activity-icon">
+            <i class="far fa-heart"></i>
+        </div>
+        <div class="activity-title">Activity On Your Posts</div>
+        <div class="activity-description">
+            When someone likes or comments on one of your posts, you'll see it here.
+        </div>
+    </div>
+
+    <div class="suggestions-section">
+        <div class="suggestions-title">Suggested for you</div>
+        <div id="suggestionsList">
+            <div class="loading">Loading suggestions...</div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    async function loadNotifications() {
+        try {
+            const notifications = await apiCall('/notifications/');
+            const container = document.getElementById('notificationsList');
+            const emptyState = document.getElementById('emptyState');
+            
+            if (!notifications || notifications.length === 0) {
+                container.style.display = 'none';
+                emptyState.style.display = 'block';
+                return;
+            }
+
+            container.innerHTML = `<div class="notifications-list">${notifications.map(notif => {
+                const timeAgo = getTimeAgo(new Date(notif.created_at));
+                let actionText = '';
+                let notifHtml = '';
+                
+                // Build notification based on type
+                if (notif.verb === 'like') {
+                    actionText = 'liked your post.';
+                    notifHtml = `
+                        <div class="notification-item ${!notif.is_read ? 'unread' : ''}" 
+                             onclick="viewNotificationTarget(${notif.target_id}, 'post')">
+                            <img src="${notif.actor_avatar || getDefaultAvatar(44)}" 
+                                 alt="${notif.actor_username}" 
+                                 class="notification-avatar">
+                            <div class="notification-content">
+                                <div class="notification-text">
+                                    <span class="username">${notif.actor_username}</span>
+                                    <span class="action">${actionText}</span>
+                                </div>
+                                <div class="notification-time">${timeAgo}</div>
+                            </div>
+                            ${notif.target_image ? `
+                                <img src="${notif.target_image}" 
+                                     alt="Post" 
+                                     class="notification-thumbnail">
+                            ` : ''}
+                        </div>
+                    `;
+                } else if (notif.verb === 'comment') {
+                    actionText = 'commented on your post.';
+                    notifHtml = `
+                        <div class="notification-item ${!notif.is_read ? 'unread' : ''}" 
+                             onclick="viewNotificationTarget(${notif.target_id}, 'post')">
+                            <img src="${notif.actor_avatar || getDefaultAvatar(44)}" 
+                                 alt="${notif.actor_username}" 
+                                 class="notification-avatar">
+                            <div class="notification-content">
+                                <div class="notification-text">
+                                    <span class="username">${notif.actor_username}</span>
+                                    <span class="action">${actionText}</span>
+                                </div>
+                                <div class="notification-time">${timeAgo}</div>
+                            </div>
+                            ${notif.target_image ? `
+                                <img src="${notif.target_image}" 
+                                     alt="Post" 
+                                     class="notification-thumbnail">
+                            ` : ''}
+                        </div>
+                    `;
+                } else if (notif.verb === 'follow') {
+                    actionText = 'started following you.';
+                    notifHtml = `
+                        <div class="notification-item ${!notif.is_read ? 'unread' : ''}" 
+                             onclick="viewProfile('${notif.actor_username}')">
+                            <img src="${notif.actor_avatar || notif.target_image || getDefaultAvatar(44)}" 
+                                 alt="${notif.actor_username}" 
+                                 class="notification-avatar">
+                            <div class="notification-content">
+                                <div class="notification-text">
+                                    <span class="username">${notif.actor_username}</span>
+                                    <span class="action">${actionText}</span>
+                                </div>
+                                <div class="notification-time">${timeAgo}</div>
+                            </div>
+                            <button class="notification-follow-btn" 
+                                    onclick="event.stopPropagation(); followUserFromNotification('${notif.actor_username}', this)">
+                                Follow
+                            </button>
+                        </div>
+                    `;
+                }
+                
+                return notifHtml;
+            }).join('')}</div>`;
+
+            // Mark notifications as read
+            await apiCall('/notifications/read/', { method: 'PATCH' });
+            
+        } catch (error) {
+            console.error('Error loading notifications:', error);
+            document.getElementById('notificationsList').innerHTML = 
+                '<div class="loading">Failed to load notifications</div>';
+        }
+    }
+
+    function viewNotificationTarget(targetId, targetType) {
+        if (targetType === 'post' && targetId) {
+            window.location.href = `/post/${targetId}`;
+        }
+    }
+
+    function viewProfile(username) {
+        window.location.href = `/profile/${username}`;
+    }
+
+    async function followUserFromNotification(username, button) {
+        try {
+            const response = await apiCall(`/profile/${username}/follow/`, { method: 'POST' });
+            if (response.status === 'followed') {
+                button.textContent = 'Following';
+                button.classList.add('following');
+            }
+        } catch (error) {
+            console.error('Error following user:', error);
+        }
+    }
+
+    function getTimeAgo(date) {
+        const seconds = Math.floor((new Date() - date) / 1000);
+        
+        if (seconds < 60) return `${seconds}s`;
+        if (seconds < 3600) return `${Math.floor(seconds / 60)}m`;
+        if (seconds < 86400) return `${Math.floor(seconds / 3600)}h`;
+        if (seconds < 604800) return `${Math.floor(seconds / 86400)}d`;
+        return `${Math.floor(seconds / 604800)}w`;
+    }
+
+    async function loadSuggestions() {
+        try {
+            const users = await apiCall('/suggestions/');
+            const container = document.getElementById('suggestionsList');
+            
+            if (!users || users.length === 0) {
+                container.innerHTML = '<div class="loading">No suggestions available</div>';
+                return;
+            }
+
+            container.innerHTML = users.slice(0, 10).map(user => `
+                <div class="suggestion-item">
+                    <img src="${user.profile?.avatar || getDefaultAvatar(44)}" 
+                         alt="${user.username}" 
+                         class="suggestion-avatar">
+                    <div class="suggestion-info">
+                        <a href="/profile/${user.username}" class="suggestion-username">${user.username}</a>
+                        <div class="suggestion-name">${user.first_name || user.username}</div>
+                        <div class="suggestion-subtitle">Suggested for you</div>
+                    </div>
+                    <button class="follow-button" onclick="followUser('${user.username}', this)">Follow</button>
+                </div>
+            `).join('');
+        } catch (error) {
+            console.error('Error loading suggestions:', error);
+            document.getElementById('suggestionsList').innerHTML = 
+                '<div class="loading">Failed to load suggestions</div>';
+        }
+    }
+
+    async function followUser(username, button) {
+        try {
+            await apiCall(`/profile/${username}/follow/`, { method: 'POST' });
+            button.textContent = 'Following';
+            button.classList.add('following');
+            button.disabled = false;
+        } catch (error) {
+            console.error('Error following user:', error);
+        }
+    }
+
+    // Initialize
+    if (authToken) {
+        loadNotifications();
+        loadSuggestions();
+    } else {
+        window.location.href = '/login';
+    }
+</script>
+{% endblock %}

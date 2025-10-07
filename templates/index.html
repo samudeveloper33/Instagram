@@ -1,0 +1,1076 @@
+{% extends 'base.html' %}
+
+{% block title %}Feed - Instagram Clone{% endblock %}
+
+{% block extra_css %}
+<style>
+    .home-container {
+        max-width: 600px;
+        margin: 40px auto;
+        padding: 0 20px;
+    }
+
+    .find-friends-banner {
+        background: var(--primary-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 24px;
+        margin-bottom: 24px;
+        text-align: center;
+    }
+
+    .friends-icons {
+        display: flex;
+        justify-content: center;
+        gap: 8px;
+        margin-bottom: 16px;
+    }
+
+    .friend-circle {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        border: 2px solid #e1306c;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+        color: white;
+        font-size: 20px;
+    }
+
+    .find-friends-title {
+        font-size: 16px;
+        font-weight: 600;
+        margin-bottom: 8px;
+    }
+
+    .find-friends-subtitle {
+        font-size: 14px;
+        color: var(--text-secondary);
+        margin-bottom: 16px;
+    }
+
+    .next-btn {
+        background: var(--link-color);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 8px 24px;
+        font-weight: 600;
+        cursor: pointer;
+        font-size: 14px;
+    }
+
+    .home-search-box {
+        background: var(--secondary-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 12px 16px;
+        margin-bottom: 16px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .home-search-box input {
+        flex: 1;
+        border: none;
+        background: none;
+        outline: none;
+        font-size: 14px;
+    }
+
+    .clear-home-search {
+        background: var(--text-secondary);
+        color: white;
+        border-radius: 50%;
+        width: 20px;
+        height: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 14px;
+        border: none;
+    }
+
+    .home-results {
+        background: var(--primary-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    .home-result-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 16px;
+        cursor: pointer;
+        transition: background-color 0.2s;
+        text-decoration: none;
+        color: var(--text-primary);
+    }
+
+    .home-result-item:hover {
+        background-color: var(--secondary-bg);
+    }
+
+    .home-result-item:not(:last-child) {
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .home-result-avatar {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        object-fit: cover;
+        background: var(--border-color);
+    }
+
+    .home-result-info {
+        flex: 1;
+    }
+
+    .home-result-username {
+        font-weight: 600;
+        font-size: 14px;
+        margin-bottom: 2px;
+    }
+
+    .home-result-name {
+        font-size: 14px;
+        color: var(--text-secondary);
+    }
+
+    .home-result-follow {
+        color: var(--link-color);
+        font-weight: 600;
+        font-size: 14px;
+    }
+
+    .feed-container {
+        display: flex;
+        gap: 30px;
+        justify-content: center;
+    }
+
+    .feed-main {
+        flex: 1;
+        max-width: 614px;
+    }
+
+    .feed-sidebar {
+        width: 320px;
+        position: sticky;
+        top: 20px;
+        height: fit-content;
+    }
+
+    .switch-btn {
+        background: none;
+        border: none;
+        color: var(--link-color);
+        font-weight: 600;
+        font-size: 12px;
+        cursor: pointer;
+    }
+
+    .footer-links {
+        margin-top: 24px;
+        font-size: 11px;
+        color: var(--text-secondary);
+        line-height: 1.8;
+    }
+
+    .footer-links a {
+        color: var(--text-secondary);
+        text-decoration: none;
+    }
+
+    /* Stories */
+    .stories-section {
+        background: var(--primary-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 16px;
+        margin-bottom: 24px;
+    }
+
+    .stories-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+    }
+
+    .stories-title {
+        font-size: 16px;
+        font-weight: 700;
+        color: var(--text-primary);
+    }
+
+    .watch-all-btn {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text-primary);
+        background: none;
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .watch-all-btn:hover {
+        opacity: 0.7;
+    }
+
+    .stories-container {
+        display: flex;
+        gap: 16px;
+        overflow-x: auto;
+        padding-bottom: 8px;
+    }
+
+    .stories-container::-webkit-scrollbar {
+        height: 6px;
+    }
+
+    .stories-container::-webkit-scrollbar-thumb {
+        background: var(--border-color);
+        border-radius: 3px;
+    }
+
+    .story-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        cursor: pointer;
+        min-width: 66px;
+        transition: opacity 0.2s;
+    }
+
+    .story-item:hover {
+        opacity: 0.8;
+    }
+
+    .story-avatar {
+        width: 66px;
+        height: 66px;
+        border-radius: 50%;
+        background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+        padding: 3px;
+        margin-bottom: 8px;
+        position: relative;
+    }
+
+    /* Viewed story - gray border (Instagram style) */
+    .story-item.viewed .story-avatar {
+        background: #F5F5F5;
+    }
+    
+    .story-item.viewed .story-username {
+        color: #8e8e8e;
+    }
+
+    .story-avatar-inner {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        border: 3px solid var(--primary-bg);
+        overflow: hidden;
+        background: var(--secondary-bg);
+    }
+
+    .story-avatar-inner img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .add-story-btn {
+        background: var(--primary-bg);
+        border: none;
+        cursor: pointer;
+        padding: 0;
+    }
+
+    .add-story-avatar {
+        width: 66px;
+        height: 66px;
+        border-radius: 50%;
+        background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 8px;
+    }
+
+    .add-story-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: var(--primary-bg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 32px;
+        color: var(--text-primary);
+    }
+
+    .story-username {
+        font-size: 12px;
+        max-width: 74px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        text-align: center;
+        color: var(--text-primary);
+    }
+
+    /* Post Card */
+    .post-card {
+        background: var(--primary-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        margin-bottom: 24px;
+    }
+
+    .post-header {
+        display: flex;
+        align-items: center;
+        padding: 14px 16px;
+        gap: 12px;
+    }
+
+    .post-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+
+    .post-author {
+        flex: 1;
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text-primary);
+        text-decoration: none;
+    }
+
+    .post-options {
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 20px;
+    }
+
+    .post-image {
+        width: 100%;
+        max-height: 600px;
+        object-fit: cover;
+    }
+
+    .post-actions {
+        display: flex;
+        padding: 6px 16px;
+        gap: 16px;
+        align-items: center;
+    }
+
+    .post-action {
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 24px;
+        color: var(--text-primary);
+        transition: color 0.2s;
+    }
+
+    .post-action.liked {
+        color: #ed4956;
+    }
+
+    .post-action:hover {
+        opacity: 0.6;
+    }
+
+    .post-likes {
+        padding: 0 16px;
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    .post-caption {
+        padding: 0 16px;
+        font-size: 14px;
+    }
+
+    .post-caption .username {
+        font-weight: 600;
+        margin-right: 6px;
+    }
+
+    .post-comments {
+        padding: 0 16px;
+        margin-top: 4px;
+    }
+
+    .view-all-comments {
+        color: var(--text-secondary);
+        font-size: 14px;
+        cursor: pointer;
+        border: none;
+        background: none;
+        padding: 4px 0;
+    }
+
+    .comment {
+        font-size: 14px;
+        padding: 4px 0;
+    }
+
+    .comment .username {
+        font-weight: 600;
+        margin-right: 6px;
+    }
+
+    .post-time {
+        padding: 8px 16px;
+        font-size: 10px;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+    }
+
+    .post-comment-form {
+        border-top: 1px solid var(--border-color);
+        padding: 16px;
+        display: flex;
+        gap: 8px;
+    }
+
+    .post-comment-form input {
+        flex: 1;
+        border: none;
+        outline: none;
+        font-size: 14px;
+    }
+
+    .post-comment-form button {
+        background: none;
+        border: none;
+        color: var(--link-color);
+        font-weight: 600;
+        cursor: pointer;
+        font-size: 14px;
+    }
+
+    .post-comment-form button:disabled {
+        opacity: 0.3;
+        cursor: default;
+    }
+
+    /* Sidebar */
+    .user-profile {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 16px 0;
+    }
+
+    .user-profile img {
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+
+    .user-info {
+        flex: 1;
+    }
+
+    .user-info .username {
+        font-size: 14px;
+        font-weight: 600;
+        display: block;
+    }
+
+    .user-info .name {
+        font-size: 14px;
+        color: var(--text-secondary);
+    }
+
+    .suggestions {
+        margin-top: 24px;
+    }
+
+    .suggestions-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+    }
+
+    .suggestions-title {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text-secondary);
+    }
+
+    .suggestion-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 16px;
+    }
+
+    .suggestion-item img {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+
+    .suggestion-info {
+        flex: 1;
+    }
+
+    .suggestion-info .username {
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    .suggestion-info .subtitle {
+        font-size: 12px;
+        color: var(--text-secondary);
+    }
+
+    .follow-btn-small {
+        color: var(--link-color);
+        font-size: 12px;
+        font-weight: 600;
+        background: none;
+        border: none;
+        cursor: pointer;
+    }
+
+    .loading {
+        text-align: center;
+        padding: 20px;
+        color: var(--text-secondary);
+    }
+
+    @media (max-width: 1024px) {
+        .feed-sidebar {
+            display: none;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .feed-main {
+            max-width: 100%;
+        }
+
+        .stories-section {
+            border-radius: 0;
+            border-left: none;
+            border-right: none;
+        }
+
+        .stories-container {
+            gap: 12px;
+        }
+
+        .post-card {
+            border-radius: 0;
+            border-left: none;
+            border-right: none;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="feed-container">
+    <div class="feed-main">
+        <!-- Stories Section -->
+        <div class="stories-section" id="storiesSection">
+            <div class="stories-container" id="storiesContainer">
+                <div class="loading">Loading stories...</div>
+            </div>
+        </div>
+
+        <!-- Posts Feed -->
+        <div id="feedPosts">
+            <div class="loading">Loading feed...</div>
+        </div>
+    </div>
+
+    <!-- Sidebar (desktop only) -->
+    <div class="feed-sidebar">
+        <div class="user-profile">
+            <img src="" alt="Profile" id="sidebarAvatar">
+            <div class="user-info">
+                <span class="username" id="sidebarUsername">username</span>
+                <span class="name" id="sidebarName">Full Name</span>
+            </div>
+            <button class="switch-btn" onclick="logout()">Switch</button>
+        </div>
+
+        <div class="suggestions">
+            <div class="suggestions-header">
+                <span class="suggestions-title">Suggestions For You</span>
+                <a href="/explore" style="font-size: 12px; font-weight: 600;">See All</a>
+            </div>
+            <div id="suggestionsContainer">
+                <div class="loading">Loading...</div>
+            </div>
+        </div>
+
+        <div class="footer-links">
+            <a href="#">About</a> · <a href="#">Help</a> · <a href="#">Press</a> · <a href="#">API</a> · 
+            <a href="#">Jobs</a> · <a href="#">Privacy</a> · <a href="#">Terms</a>
+            <div style="margin-top: 16px; color: var(--text-secondary); font-size: 11px;">
+                © 2025 INSTAGRAM CLONE
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let currentPage = 1;
+    let isLoading = false;
+    let hasMorePosts = true;
+    
+    // Global story queue for continuous viewing
+    let allUserStoriesQueue = [];
+    let currentUserIndex = 0;
+
+    // Load stories
+    async function loadStories() {
+        const container = document.getElementById('storiesContainer');
+        const section = document.getElementById('storiesSection');
+        
+        // Always show section with "Add story" button
+        section.style.display = 'block';
+        
+        // Always add "Add story" button first
+        let storiesHTML = `
+            <button class="add-story-btn story-item" onclick="addStory()">
+                <div class="add-story-avatar">
+                    <div class="add-story-icon">+</div>
+                </div>
+                <span class="story-username">Add story</span>
+            </button>
+        `;
+        
+        try {
+            const response = await apiCall('/stories/');
+            
+            // Handle both array and paginated response
+            const stories = Array.isArray(response) ? response : (response.results || []);
+            
+            console.log('Stories loaded:', stories.length, 'stories');
+            
+            // Group stories by username
+            const groupedStories = {};
+            stories.forEach(story => {
+                const username = story.username || 'Unknown';
+                if (!groupedStories[username]) {
+                    groupedStories[username] = {
+                        username: username,
+                        user_avatar: story.user_avatar,
+                        user_id: story.user_id,
+                        stories: [],
+                        is_viewed: true // Will be set to false if any story is unviewed
+                    };
+                }
+                groupedStories[username].stories.push(story);
+                // If any story is not viewed, mark the whole group as not viewed
+                if (!story.is_viewed) {
+                    groupedStories[username].is_viewed = false;
+                }
+            });
+            
+            // Convert grouped stories to array
+            let userStories = Object.values(groupedStories);
+            
+            // Sort: unviewed stories first, viewed stories last (Instagram behavior)
+            userStories.sort((a, b) => {
+                if (a.is_viewed === b.is_viewed) return 0;
+                return a.is_viewed ? 1 : -1; // Unviewed (false) comes first
+            });
+            
+            // Store in global queue for continuous viewing
+            allUserStoriesQueue = userStories;
+            
+            // Add user stories if available
+            if (userStories && userStories.length > 0) {
+                storiesHTML += userStories.map(userStory => {
+                    // Add "viewed" class if all stories have been viewed
+                    const viewedClass = userStory.is_viewed ? 'viewed' : '';
+                    // Use global safe image function
+                    const avatarSrc = safeImageSrc(userStory.user_avatar, 66);
+                    // Store first story ID for viewing
+                    const firstStoryId = userStory.stories[0].id;
+                    const userIndex = userStories.indexOf(userStory);
+                    return `
+                        <div class="story-item ${viewedClass}" onclick="viewUserStoriesAtIndex(${userIndex})">
+                            <div class="story-avatar">
+                                <div class="story-avatar-inner">
+                                    <img src="${avatarSrc}" 
+                                         alt="${userStory.username}"
+                                         onerror="this.src=getDefaultAvatar(66)">
+                                </div>
+                            </div>
+                            <span class="story-username">${userStory.username}</span>
+                        </div>
+                    `;
+                }).join('');
+            }
+        } catch (error) {
+            console.error('Error loading stories:', error);
+            // Continue to show "Add story" button even on error
+        }
+        
+        // Update container with stories HTML
+        container.innerHTML = storiesHTML;
+    }
+
+    function viewStory(storyId) {
+        // Open full-screen story viewer
+        openStoryViewer(storyId);
+    }
+
+    function viewUserStoriesAtIndex(userIndex) {
+        // Set current user index and view their stories
+        currentUserIndex = userIndex;
+        
+        if (allUserStoriesQueue[currentUserIndex]) {
+            const userStory = allUserStoriesQueue[currentUserIndex];
+            openStoryViewerWithStories(userStory.stories, true); // true = enable auto-next
+        }
+    }
+    
+    function moveToNextUserStories() {
+        // Move to next user's stories automatically
+        currentUserIndex++;
+        
+        if (currentUserIndex < allUserStoriesQueue.length) {
+            const nextUserStory = allUserStoriesQueue[currentUserIndex];
+            console.log('Auto-playing next user stories:', nextUserStory.username);
+            openStoryViewerWithStories(nextUserStory.stories, true);
+        } else {
+            // No more users, close viewer
+            console.log('All stories watched!');
+            closeStoryViewer();
+        }
+    }
+    
+    async function viewUserStories(username, firstStoryId) {
+        // Load all stories for this user and open story viewer (legacy function)
+        try {
+            const response = await apiCall('/stories/');
+            const allStories = Array.isArray(response) ? response : (response.results || []);
+            
+            // Filter stories for this specific user
+            const userStories = allStories.filter(story => story.username === username);
+            
+            if (userStories.length > 0) {
+                // Open story viewer with all user's stories
+                openStoryViewerWithStories(userStories, false);
+            }
+        } catch (error) {
+            console.error('Error loading user stories:', error);
+            // Fallback to single story
+            openStoryViewer(firstStoryId);
+        }
+    }
+
+    function addStory() {
+        // Open story creation modal
+        openStoryModal();
+    }
+
+
+    // Load feed
+    async function loadFeed() {
+        if (isLoading || !hasMorePosts) return;
+        isLoading = true;
+
+        try {
+            const data = await apiCall(`/feed/?page=${currentPage}`);
+            const container = document.getElementById('feedPosts');
+            
+            if (currentPage === 1) {
+                if (data.results.length === 0) {
+                    container.innerHTML = '<div class="loading">No posts yet. Follow some users to see their posts!</div>';
+                    return;
+                }
+                container.innerHTML = '';
+            }
+
+            if (data.results.length === 0) {
+                hasMorePosts = false;
+                return;
+            }
+
+            data.results.forEach(post => {
+                const postElement = createPostElement(post);
+                container.insertAdjacentHTML('beforeend', postElement);
+            });
+
+            currentPage++;
+        } catch (error) {
+            console.error('Error loading feed:', error);
+            document.getElementById('feedPosts').innerHTML = '<div class="loading">Failed to load feed</div>';
+        } finally {
+            isLoading = false;
+        }
+    }
+
+    function createPostElement(post) {
+        const timeSince = getTimeSince(new Date(post.created_at));
+        const avatarSrc = safeImageSrc(post.author_avatar, 32);
+        
+        return `
+            <div class="post-card" data-post-id="${post.id}">
+                <div class="post-header">
+                    <img src="${avatarSrc}" alt="${post.author_username}" class="post-avatar" onerror="this.src='${getDefaultAvatar(32)}'">
+                    <a href="/profile/${post.author_username}" class="post-author">${post.author_username}</a>
+                    <button class="post-options" onclick="showPostOptions(${post.id})">⋯</button>
+                </div>
+                ${post.video ? 
+                    `<video src="${post.video}" class="post-image" controls></video>` :
+                    `<img src="${post.image}" alt="Post" class="post-image">`
+                }
+                <div class="post-actions">
+                    <button class="post-action ${post.is_liked ? 'liked' : ''}" onclick="toggleLike(${post.id}, this)">
+                        <i class="${post.is_liked ? 'fas' : 'far'} fa-heart"></i>
+                    </button>
+                    <button class="post-action" onclick="focusComment(${post.id})">
+                        <i class="far fa-comment"></i>
+                    </button>
+                </div>
+                <div class="post-likes">
+                    <span id="likes-${post.id}">${post.likes_count}</span> likes
+                </div>
+                ${post.caption ? `
+                <div class="post-caption">
+                    <span class="username">${post.author_username}</span>
+                    ${post.caption}
+                </div>
+                ` : ''}
+                <div class="post-comments" id="comments-${post.id}">
+                    ${post.comments_count > 2 ? `
+                        <button class="view-all-comments" onclick="viewAllComments(${post.id})">
+                            View all ${post.comments_count} comments
+                        </button>
+                    ` : ''}
+                    ${post.comments.slice(0, 2).map(comment => `
+                        <div class="comment">
+                            <span class="username">${comment.author_username}</span>
+                            ${comment.text}
+                        </div>
+                    `).join('')}
+                </div>
+                <div class="post-time">${timeSince}</div>
+                <form class="post-comment-form" onsubmit="addComment(event, ${post.id})">
+                    <input type="text" placeholder="Add a comment..." id="comment-input-${post.id}">
+                    <button type="submit" disabled id="comment-btn-${post.id}">Post</button>
+                </form>
+            </div>
+        `;
+    }
+
+    async function toggleLike(postId, button) {
+        try {
+            const response = await apiCall(`/posts/${postId}/like/`, { method: 'POST' });
+            const likesElement = document.getElementById(`likes-${postId}`);
+            let likes = parseInt(likesElement.textContent);
+            
+            if (response.status === 'liked') {
+                button.classList.add('liked');
+                button.innerHTML = '<i class="fas fa-heart"></i>';
+                likesElement.textContent = likes + 1;
+            } else {
+                button.classList.remove('liked');
+                button.innerHTML = '<i class="far fa-heart"></i>';
+                likesElement.textContent = likes - 1;
+            }
+        } catch (error) {
+            console.error('Error toggling like:', error);
+        }
+    }
+
+    async function addComment(event, postId) {
+        event.preventDefault();
+        const input = document.getElementById(`comment-input-${postId}`);
+        const text = input.value.trim();
+        
+        if (!text) return;
+        
+        try {
+            const comment = await apiCall(`/posts/${postId}/comments/`, {
+                method: 'POST',
+                body: JSON.stringify({ text })
+            });
+            
+            // Clear input
+            input.value = '';
+            document.getElementById(`comment-btn-${postId}`).disabled = true;
+            
+            // Add comment to UI
+            const commentsContainer = document.getElementById(`comments-${postId}`);
+            const newCommentHTML = `
+                <div class="comment">
+                    <span class="username">${comment.author_username}</span>
+                    ${comment.text}
+                </div>
+            `;
+            commentsContainer.insertAdjacentHTML('beforeend', newCommentHTML);
+            
+            // Update comments count if it exists
+            const viewAllButton = commentsContainer.querySelector('.view-all-comments');
+            if (viewAllButton) {
+                const currentCount = parseInt(viewAllButton.textContent.match(/\d+/)[0]);
+                viewAllButton.textContent = `View all ${currentCount + 1} comments`;
+            }
+        } catch (error) {
+            console.error('Error adding comment:', error);
+            alert('Failed to add comment');
+        }
+    }
+
+    function focusComment(postId) {
+        document.getElementById(`comment-input-${postId}`).focus();
+    }
+
+    function viewAllComments(postId) {
+        window.location.href = `/post/${postId}`;
+    }
+
+    function showPostOptions(postId) {
+        alert('Post options coming soon!');
+    }
+
+    function getTimeSince(date) {
+        const seconds = Math.floor((new Date() - date) / 1000);
+        
+        if (seconds < 60) return `${seconds} seconds ago`;
+        if (seconds < 3600) return `${Math.floor(seconds / 60)} minutes ago`;
+        if (seconds < 86400) return `${Math.floor(seconds / 3600)} hours ago`;
+        return `${Math.floor(seconds / 86400)} days ago`;
+    }
+
+    // Load suggestions
+    async function loadSuggestions() {
+        try {
+            const users = await apiCall('/suggestions/');
+            const container = document.getElementById('suggestionsContainer');
+            
+            if (!users || users.length === 0) {
+                container.innerHTML = '<div style="color: var(--text-secondary); font-size: 14px;">No suggestions available</div>';
+                return;
+            }
+
+            container.innerHTML = users.slice(0, 5).map(user => {
+                const userAvatarSrc = safeImageSrc(user.profile?.avatar, 32);
+                return `
+                    <div class="suggestion-item" data-username="${user.username}">
+                        <img src="${userAvatarSrc}" alt="${user.username}" onerror="this.src='${getDefaultAvatar(32)}'">
+                        <div class="suggestion-info">
+                            <div class="username">${user.username}</div>
+                            <div class="subtitle">Suggested for you</div>
+                        </div>
+                        <button class="follow-btn-small" onclick="followUser('${user.username}', this)">
+                            ${user.is_following ? 'Following' : 'Follow'}
+                        </button>
+                    </div>
+                `;
+            }).join('');
+        } catch (error) {
+            console.error('Error loading suggestions:', error);
+            document.getElementById('suggestionsContainer').innerHTML = '<div style="color: var(--text-secondary); font-size: 14px;">Failed to load suggestions</div>';
+        }
+    }
+
+    async function followUser(username, button) {
+        try {
+            const response = await apiCall(`/profile/${username}/follow/`, { method: 'POST' });
+            
+            if (response.status === 'followed') {
+                button.textContent = 'Following';
+                button.style.opacity = '0.6';
+                button.style.cursor = 'default';
+                
+                // Optionally remove the suggestion after a short delay
+                setTimeout(() => {
+                    const suggestionItem = button.closest('.suggestion-item');
+                    if (suggestionItem) {
+                        suggestionItem.style.transition = 'opacity 0.3s';
+                        suggestionItem.style.opacity = '0';
+                        setTimeout(() => suggestionItem.remove(), 300);
+                    }
+                }, 1000);
+            } else {
+                button.textContent = 'Follow';
+                button.style.opacity = '1';
+            }
+        } catch (error) {
+            console.error('Error following user:', error);
+            alert('Failed to follow user. Please try again.');
+        }
+    }
+
+    // Load user profile info for sidebar
+    async function loadUserProfile() {
+        try {
+            const profile = await apiCall('/profile/me/');
+            document.getElementById('sidebarUsername').textContent = profile.username;
+            document.getElementById('sidebarName').textContent = profile.user?.first_name || profile.username;
+            const sidebarAvatar = document.getElementById('sidebarAvatar');
+            sidebarAvatar.src = safeImageSrc(profile.avatar, 56);
+            sidebarAvatar.onerror = function() { this.src = getDefaultAvatar(56); };
+        } catch (error) {
+            console.error('Error loading profile:', error);
+        }
+    }
+
+    function logout() {
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('refreshToken');
+        window.location.href = '/login';
+    }
+
+    // Enable/disable comment button
+    document.addEventListener('input', (e) => {
+        if (e.target.id.startsWith('comment-input-')) {
+            const postId = e.target.id.split('-')[2];
+            const btn = document.getElementById(`comment-btn-${postId}`);
+            btn.disabled = !e.target.value.trim();
+        }
+    });
+
+    // Initialize
+    if (authToken) {
+        loadUserProfile();
+        loadStories();
+        loadFeed();
+        loadSuggestions();
+    } else {
+        window.location.href = '/login';
+    }
+
+    // Infinite scroll
+    window.addEventListener('scroll', () => {
+        if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 500) {
+            loadFeed();
+        }
+    });
+</script>
+{% endblock %}
