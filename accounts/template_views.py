@@ -53,26 +53,37 @@ def oauth_complete_view(request):
 
 
 def social_signup_redirect(request):
-    """Redirect social signup directly to oauth complete"""
+    """Redirect social signup directly to oauth complete (COOKIE CLEAR SAFE)"""
     import logging
     logger = logging.getLogger(__name__)
     
     logger.info(f"Social signup redirect - User: {request.user}, Authenticated: {request.user.is_authenticated if hasattr(request.user, 'is_authenticated') else False}, Session oauth_user_id: {request.session.get('oauth_user_id')}")
     
-    # Try to generate a temp token if user is authenticated
+    # Try to generate a temp token if user is authenticated (with enhanced format)
     try:
+        user_id = None
+        user_email = None
+        
+        # Primary: Get from authenticated user
         if request.user and request.user.is_authenticated and request.user.id:
-            from django.core.signing import Signer
-            signer = Signer()
-            temp_token = signer.sign(request.user.id)
-            logger.info(f"Generated temp token for authenticated user: {request.user.id}")
-            return redirect(f'/oauth-complete?temp_token={temp_token}')
+            user_id = request.user.id
+            user_email = request.user.email
+            logger.info(f"Using authenticated user: {user_id} ({user_email})")
+        # Fallback: Get from session (works after cookie clear if session recreated)
         elif request.session.get('oauth_user_id'):
+            user_id = request.session.get('oauth_user_id')
+            user_email = request.session.get('oauth_user_email')
+            logger.info(f"Using session user: {user_id} ({user_email})")
+            
+        if user_id:
             from django.core.signing import Signer
             signer = Signer()
-            temp_token = signer.sign(request.session.get('oauth_user_id'))
-            logger.info(f"Generated temp token for session user: {request.session.get('oauth_user_id')}")
+            # Use enhanced token format with email for additional security
+            token_data = f"{user_id}:{user_email}" if user_email else str(user_id)
+            temp_token = signer.sign(token_data)
+            logger.info(f"Generated enhanced temp token for user: {user_id}")
             return redirect(f'/oauth-complete?temp_token={temp_token}')
+            
     except Exception as e:
         logger.error(f"Error generating temp token: {e}")
     

@@ -522,24 +522,37 @@ def get_jwt_token(request):
     # If not authenticated via session, check if there's a temporary auth token
     temp_token = request.GET.get('temp_token') or request.data.get('temp_token')
     if temp_token:
-        # Verify temporary token and get user
+        # Verify temporary token and get user (COOKIE CLEAR SAFE)
         try:
             from django.core.signing import Signer
             signer = Signer()
-            user_id = signer.unsign(temp_token)
-            user = User.objects.get(id=user_id)
+            token_data = signer.unsign(temp_token)
             
-            refresh = RefreshToken.for_user(user)
-            return Response({
-                'refresh': str(refresh),
-                'access': str(refresh.access_token),
-                'user': {
-                    'id': user.id,
-                    'username': user.username,
-                    'email': user.email,
-                }
-            })
-        except Exception:
+            # Handle enhanced token format: "user_id:email" or just "user_id"
+            if ':' in str(token_data):
+                user_id, user_email = str(token_data).split(':', 1)
+                # Verify both ID and email for security after cookie clear
+                user = User.objects.filter(id=user_id, email=user_email).first()
+                logger.info(f"Enhanced token verification: user_id={user_id}, email={user_email}, found={bool(user)}")
+            else:
+                # Legacy token format (just user_id)
+                user_id = token_data
+                user = User.objects.get(id=user_id)
+                logger.info(f"Legacy token verification: user_id={user_id}, found={bool(user)}")
+            
+            if user:
+                refresh = RefreshToken.for_user(user)
+                return Response({
+                    'refresh': str(refresh),
+                    'access': str(refresh.access_token),
+                    'user': {
+                        'id': user.id,
+                        'username': user.username,
+                        'email': user.email,
+                    }
+                })
+        except Exception as e:
+            logger.error(f"Temp token verification failed: {e}")
             pass
     
     # Last resort: try to find user by session-stored email and ID

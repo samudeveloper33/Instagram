@@ -225,13 +225,11 @@ SOCIALACCOUNT_FORMS = {
 }
 
 # Social account providers
+# Note: Using database configuration (SocialApp model) instead of settings
+# to avoid MultipleObjectsReturned errors. OAuth apps are configured via
+# the Django admin or setup_google_oauth.py script.
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
-        'APP': {
-            'client_id': os.getenv('GOOGLE_CLIENT_ID', ''),
-            'secret': os.getenv('GOOGLE_CLIENT_SECRET', ''),
-            'key': ''
-        },
         'SCOPE': [
             'profile',
             'email',
