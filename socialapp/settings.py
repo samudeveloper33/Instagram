@@ -57,7 +57,6 @@ INSTALLED_APPS = [
     
     # Local apps
     'accounts',
-    'posts',
 ]
 
 SITE_ID = 1

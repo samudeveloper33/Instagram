@@ -37,6 +37,10 @@ db.sqlite3-journal
 !/media/avatars/.gitkeep
 !/media/stories/.gitkeep
 
+# Migrations
+*/migrations/*
+!*/migrations/__init__.py
+
 
 # IDE
 .vscode/

@@ -83,6 +83,11 @@ class CustomSocialAccountAdapter(DefaultSocialAccountAdapter):
         user.save()
         logger.info(f"Created new user {user.pk} ({user.email}) after cookie clear")
         
+        # Ensure profile exists for new user (backup to signal handler)
+        if user and user.pk:
+            from .models import Profile
+            Profile.objects.get_or_create(user=user)
+        
         # Create fresh session for the new user
         if user and user.pk:
             login(request, user, backend='allauth.account.auth_backends.AuthenticationBackend')
@@ -199,6 +204,10 @@ class CustomSocialAccountAdapter(DefaultSocialAccountAdapter):
                     # CRITICAL: Connect the social account to the existing user
                     # This preserves all existing user data (username, password, etc.)
                     sociallogin.user = existing_user
+                    
+                    # Ensure profile exists for existing user (backup to signal handler)
+                    from .models import Profile
+                    Profile.objects.get_or_create(user=existing_user)
                     
                     # Create fresh session for existing user
                     login(request, existing_user, backend='allauth.account.auth_backends.AuthenticationBackend')

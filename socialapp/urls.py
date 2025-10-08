@@ -13,7 +13,6 @@ urlpatterns = [
     
     # API endpoints
     path('api/', include('accounts.urls')),
-    path('api/', include('posts.urls')),
     
     # Custom social signup redirect (must be before allauth.urls)
     path('accounts/3rdparty/signup/', social_signup_redirect, name='social-signup-redirect'),
