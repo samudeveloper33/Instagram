@@ -1,41 +1,80 @@
-### 1. Create Virtual Environment
+# Instagram Clone 📸
+
+A full-featured Instagram clone built with Django and React-like frontend.
+
+## 🚀 Quick Start (1 minute!)
+
 ```bash
+git clone <your-repo-url>
+cd Instagram
 python -m venv .venv
-.venv\Scripts\activate  
+.venv\Scripts\activate  # Windows
+pip install -r requirements.txt
+python manage.py migrate
+python manage.py runserver
 ```
 
-### 2. Install Dependencies
+Visit: **http://127.0.0.1:8000** 🎉
+
+**That's it!** OAuth auto-configures automatically! ✨
+
+## 🔧 OAuth Configuration
+
+### 🚀 Automatic Setup (Default)
+- OAuth **auto-configures** when you start the server
+- Uses test credentials if no `.env` file found
+- Uses real credentials if `.env` file exists
+- **No manual setup needed!**
+
+### 🔑 For Real Google Login
+1. Get credentials from [Google Cloud Console](https://console.cloud.google.com/)
+2. Create `.env` file:
+```env
+GOOGLE_CLIENT_ID=your_client_id_here
+GOOGLE_CLIENT_SECRET=your_client_secret_here
+```
+3. Restart server - OAuth auto-updates!
+
+## ✨ Features
+
+- 🔐 Google OAuth login
+- 📸 Photo upload & sharing
+- ❤️ Like/Unlike posts
+- 👥 Follow/Unfollow users
+- 📱 Responsive design
+- 🔄 Real-time feed updates
+- 🎯 JWT API authentication
+
+## 🛠️ Troubleshooting
+
+**SocialApp.DoesNotExist Error?**
+```bash
+# This should not happen with auto-setup!
+# If it does, restart the server:
+python manage.py runserver
+```
+
+**Missing dependencies?**
 ```bash
 pip install -r requirements.txt
 ```
 
-### 3. Environment Setup
-Create a `.env` file in the root directory:
-```env
-GOOGLE_CLIENT_ID=your_google_client_id
-GOOGLE_CLIENT_SECRET=your_google_client_secret
-```
-
-### 4. Database Setup
+**Database issues?**
 ```bash
-python manage.py migrate
+python manage.py migrate --run-syncdb
 ```
 
-### 5. Create Test User
-```bash
-python manage.py shell -c "from django.contrib.auth.models import User; from accounts.models import Profile; user = User.objects.create_user('testuser', 'test@example.com', 'testpass123'); Profile.objects.get_or_create(user=user); print('Test user created')"
-```
+## 📱 Usage
 
-### 6. Run the Server
-```bash
-python manage.py runserver
-```
+1. **Home:** Browse posts from followed users
+2. **Profile:** View/edit your profile 
+3. **Upload:** Share new photos
+4. **Discover:** Find new users to follow
 
-## Usage
+## 🔗 API Endpoints
 
-1. **Access the application:** `http://127.0.0.1:8000/`
-2. **Login with test credentials:**
-   - Username: `testuser`
-   - Password: `testpass123`
-3. **Or register a new account:** `http://127.0.0.1:8000/register/`
-4. **Or use Google OAuth** (if configured)
+- `GET /api/posts/` - All posts
+- `POST /api/posts/` - Create post  
+- `POST /api/posts/{id}/like/` - Like/unlike
+- `GET /api/profile/me/` - Current user
+- `POST /api/follow/{username}/` - Follow user
