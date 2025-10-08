@@ -594,6 +594,26 @@ def get_jwt_token(request):
     )
 
 
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def logout_view(request):
+    """Logout endpoint that clears both session and tokens"""
+    from django.contrib.auth import logout
+    import logging
+    
+    logger = logging.getLogger(__name__)
+    logger.info(f"Logout request - User: {request.user}, Session key: {request.session.session_key}")
+    
+    # Clear Django session
+    logout(request)
+    
+    # Clear any OAuth-related session data
+    request.session.flush()
+    
+    logger.info("User logged out successfully")
+    return Response({'message': 'Logged out successfully'}, status=status.HTTP_200_OK)
+
+
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def debug_auth_status(request):

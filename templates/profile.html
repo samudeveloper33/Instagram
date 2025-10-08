@@ -1794,10 +1794,24 @@
         window.open('https://help.instagram.com/', '_blank');
     }
 
-    function logout() {
+    async function logout() {
+        try {
+            // Call logout endpoint to clear session
+            await fetch('/api/logout/', {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                }
+            });
+        } catch (error) {
+            console.log('Logout endpoint error (continuing anyway):', error);
+        }
+        
         localStorage.removeItem('authToken');
         localStorage.removeItem('refreshToken');
-        window.location.href = '/login';
+        window.location.href = '/login/';
     }
 
     // Followers Modal

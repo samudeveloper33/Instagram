@@ -1566,13 +1566,26 @@
         const API_URL = '/api';
         let authToken = localStorage.getItem('authToken');
         let currentLoggedInUser = null;
+        let isLoggingOut = false;
+        let isAuthInitialized = false;
 
         // Initialize authentication state
         async function initializeAuth() {
+            // Don't initialize if we're in the middle of logging out
+            if (isLoggingOut) {
+                console.log('Logout in progress, skipping auth initialization');
+                return;
+            }
+            
             authToken = localStorage.getItem('authToken');
+            
+            // Check if we're on a public page first
+            const currentPath = window.location.pathname;
+            const publicPaths = ['/login/', '/register/', '/oauth-complete/'];
+            const isPublicPath = publicPaths.some(path => currentPath.startsWith(path));
 
             // If no JWT token but user might be logged in via OAuth/session
-            if (!authToken) {
+            if (!authToken && !isPublicPath) {
                 try {
                     // Try to get JWT token first (safer approach - doesn't call protected endpoints)
                     const tokenResponse = await fetch(`${API_URL}/auth/get-jwt-token/`, {
@@ -1592,31 +1605,19 @@
                         }
                         console.log('JWT tokens obtained from session');
                     } else {
-                        console.log('No active session found - user needs to login');
-                        // If we're on a protected page and not authenticated, redirect to login
-                        const currentPath = window.location.pathname;
-                        const publicPaths = ['/login/', '/register/', '/oauth-complete/'];
-                        const isPublicPath = publicPaths.some(path => currentPath.startsWith(path));
-                        
-                        if (!isPublicPath && currentPath !== '/') {
-                            console.log('Redirecting to login - protected page requires authentication');
-                            window.location.href = '/login/';
-                            return;
-                        }
-                    }
-                } catch (error) {
-                    console.log('No existing authentication found:', error.message);
-                    // If we're on a protected page and not authenticated, redirect to login
-                    const currentPath = window.location.pathname;
-                    const publicPaths = ['/login/', '/register/', '/oauth-complete/'];
-                    const isPublicPath = publicPaths.some(path => currentPath.startsWith(path));
-                    
-                    if (!isPublicPath && currentPath !== '/') {
-                        console.log('Redirecting to login - authentication error on protected page');
+                        console.log('No active session found - redirecting to login');
                         window.location.href = '/login/';
                         return;
                     }
+                } catch (error) {
+                    console.log('Authentication error - redirecting to login:', error.message);
+                    window.location.href = '/login/';
+                    return;
                 }
+            } else if (!authToken && isPublicPath) {
+                // On public pages without token, don't try to authenticate
+                console.log('On public page without authentication - this is normal');
+                return;
             }
 
             if (authToken) {
@@ -1631,10 +1632,13 @@
                 if (floatingBtn) floatingBtn.style.display = 'none';
                 
                 // Show login prompt on home page for unauthenticated users
-                if (window.location.pathname === '/') {
+                if (window.location.pathname === '/' && !isPublicPath) {
                     showLoginPrompt();
                 }
             }
+            
+            // Mark authentication as initialized
+            isAuthInitialized = true;
         }
 
         // Show login prompt for unauthenticated users on home page
@@ -1785,6 +1789,12 @@
 
         // API Helper
         async function apiCall(endpoint, options = {}) {
+            // Wait for authentication to be initialized before making API calls
+            if (!isAuthInitialized && !options.noAuth) {
+                console.log('Waiting for auth initialization before API call');
+                return null;
+            }
+            
             const headers = {
                 ...options.headers,
             };
@@ -1814,9 +1824,20 @@
 
             if (!response.ok) {
                 if (response.status === 401 || response.status === 403) {
-                    // Redirect to login if unauthorized
-                    console.error('Authentication required. Redirecting to login...');
-                    window.location.href = '/login';
+                    // Clear invalid tokens and redirect to login only if not already on login page
+                    console.error('Authentication required');
+                    localStorage.removeItem('authToken');
+                    localStorage.removeItem('refreshToken');
+                    authToken = null;
+                    
+                    const currentPath = window.location.pathname;
+                    const publicPaths = ['/login/', '/register/', '/oauth-complete/'];
+                    const isPublicPath = publicPaths.some(path => currentPath.startsWith(path));
+                    
+                    if (!isPublicPath && !isLoggingOut) {
+                        console.log('Redirecting to login due to authentication error');
+                        window.location.href = '/login/';
+                    }
                     return;
                 }
                 throw new Error(`HTTP error! status: ${response.status}`);
@@ -3074,13 +3095,32 @@
         }
 
         // Logout function
-        function logout() {
+        async function logout() {
+            // Set logout flag to prevent auth initialization during logout
+            isLoggingOut = true;
+            isAuthInitialized = false;
+            
+            try {
+                // Call logout endpoint to clear session
+                await fetch(`${API_URL}/logout/`, {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    }
+                });
+            } catch (error) {
+                console.log('Logout endpoint error (continuing anyway):', error);
+            }
+            
             // Clear tokens from localStorage
             localStorage.removeItem('authToken');
             localStorage.removeItem('refreshToken');
+            authToken = null;
             
             // Redirect to login page
-            window.location.href = '/login';
+            window.location.href = '/login/';
         }
 
         // Initialize authentication state (for OAuth users)

@@ -6,6 +6,7 @@ urlpatterns = [
     # Authentication
     path('register/', views.RegisterView.as_view(), name='register'),
     path('login/', TokenObtainPairView.as_view(), name='login'),
+    path('logout/', views.logout_view, name='logout'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('auth/get-jwt-token/', views.get_jwt_token, name='get-jwt-token'),
     path('auth/debug/', views.debug_auth_status, name='debug-auth-status'),

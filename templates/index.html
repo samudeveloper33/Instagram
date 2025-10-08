@@ -1041,10 +1041,24 @@
         }
     }
 
-    function logout() {
+    async function logout() {
+        try {
+            // Call logout endpoint to clear session
+            await fetch('/api/logout/', {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                }
+            });
+        } catch (error) {
+            console.log('Logout endpoint error (continuing anyway):', error);
+        }
+        
         localStorage.removeItem('authToken');
         localStorage.removeItem('refreshToken');
-        window.location.href = '/login';
+        window.location.href = '/login/';
     }
 
     // Enable/disable comment button
@@ -1057,14 +1071,29 @@
     });
 
     // Initialize
-    if (authToken) {
-        loadUserProfile();
-        loadStories();
-        loadFeed();
-        loadSuggestions();
-    } else {
-        window.location.href = '/login';
+    async function initializePage() {
+        // Wait for authentication to be initialized
+        await new Promise(resolve => {
+            if (typeof authToken !== 'undefined') {
+                resolve();
+            } else {
+                // Wait for auth initialization
+                setTimeout(resolve, 100);
+            }
+        });
+        
+        if (authToken) {
+            loadUserProfile();
+            loadStories();
+            loadFeed();
+            loadSuggestions();
+        } else {
+            console.log('No authentication token found, redirecting to login');
+            window.location.href = '/login/';
+        }
     }
+    
+    initializePage();
 
     // Infinite scroll
     window.addEventListener('scroll', () => {
