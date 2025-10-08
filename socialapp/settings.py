@@ -215,6 +215,10 @@ ACCOUNT_ADAPTER = 'accounts.adapters.CustomAccountAdapter'  # Custom account ada
 SOCIALACCOUNT_QUERY_EMAIL = True
 SOCIALACCOUNT_STORE_TOKENS = False
 
+# Enable email-based user connection for existing accounts
+SOCIALACCOUNT_EMAIL_REQUIRED = True
+SOCIALACCOUNT_EMAIL_VERIFICATION = 'none'
+
 # Force skip signup form for social accounts
 SOCIALACCOUNT_FORMS = {
     'signup': None,  # Skip signup form completely

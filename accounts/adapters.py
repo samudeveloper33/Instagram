@@ -130,18 +130,53 @@ class CustomSocialAccountAdapter(DefaultSocialAccountAdapter):
         """
         Invoked just after a user successfully authenticates via a
         social provider, but before the login is actually processed.
-        """
-        # For existing users, make sure they get logged in with session
-        if sociallogin.user and sociallogin.user.pk:
-            login(request, sociallogin.user, backend='allauth.account.auth_backends.AuthenticationBackend')
-            # Store user ID in session for temp token generation
-            request.session['oauth_user_id'] = sociallogin.user.pk
-            request.session['oauth_user_email'] = sociallogin.user.email
-            request.session.save()
         
-        # Since we allow multiple accounts with same email, 
-        # let Django Allauth handle the social login normally
-        # without trying to connect to existing users
+        This method checks if a user with the same email already exists,
+        and if so, connects the social account to that existing user
+        instead of creating a new one.
+        """
+        import logging
+        logger = logging.getLogger(__name__)
+        
+        # Get the email from the social login
+        email = sociallogin.user.email
+        
+        if email:
+            try:
+                # Check if a user with this email already exists
+                existing_user = User.objects.get(email=email)
+                
+                # If user exists, connect this social account to the existing user
+                if existing_user:
+                    logger.info(f"Found existing user {existing_user.username} with email {email}. Connecting Google account.")
+                    
+                    # Connect the social account to the existing user
+                    sociallogin.user = existing_user
+                    
+                    # Log in the existing user
+                    login(request, existing_user, backend='allauth.account.auth_backends.AuthenticationBackend')
+                    
+                    # Store user ID in session for temp token generation
+                    request.session['oauth_user_id'] = existing_user.pk
+                    request.session['oauth_user_email'] = existing_user.email
+                    request.session.save()
+                    
+                    logger.info(f"Successfully connected Google account to existing user {existing_user.username}")
+                    
+            except User.DoesNotExist:
+                # No existing user found, proceed with creating a new user
+                logger.info(f"No existing user found with email {email}. Will create new user.")
+                
+                # For new users, make sure they get logged in with session after creation
+                if sociallogin.user and sociallogin.user.pk:
+                    login(request, sociallogin.user, backend='allauth.account.auth_backends.AuthenticationBackend')
+                    # Store user ID in session for temp token generation
+                    request.session['oauth_user_id'] = sociallogin.user.pk
+                    request.session['oauth_user_email'] = sociallogin.user.email
+                    request.session.save()
+            except Exception as e:
+                logger.error(f"Error in pre_social_login: {e}")
+        
         super().pre_social_login(request, sociallogin)
     
     
