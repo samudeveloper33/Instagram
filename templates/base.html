@@ -1621,24 +1621,21 @@
             }
 
             if (authToken) {
+                // Mark auth as initialized before making API calls
+                isAuthInitialized = true;
                 loadCurrentUser();
                 startCountRefresh();
                 startNotificationPolling();
                 updateFloatingButtonVisibility();
-                syncMobileBadges();
             } else {
-                // Hide floating button if not logged in
-                const floatingBtn = document.getElementById('floatingMessagesBtn');
-                if (floatingBtn) floatingBtn.style.display = 'none';
-                
+                // Mark auth as initialized even without token to prevent loops
+                isAuthInitialized = true;
+                syncMobileBadges();
                 // Show login prompt on home page for unauthenticated users
                 if (window.location.pathname === '/' && !isPublicPath) {
                     showLoginPrompt();
                 }
             }
-            
-            // Mark authentication as initialized
-            isAuthInitialized = true;
         }
 
         // Show login prompt for unauthenticated users on home page
@@ -2988,13 +2985,17 @@
             
             try {
                 const response = await apiCall('/notifications/');
-                const notifications = Array.isArray(response) ? response : (response.results || []);
-                const unreadCount = notifications.filter(n => !n.is_read).length;
-                
-                if (unreadCount > 0) {
-                    const badge = document.getElementById('notificationBadge');
-                    badge.textContent = unreadCount;
-                    badge.classList.remove('hidden');
+                if (response && response.results) {
+                    const notifications = Array.isArray(response.results) ? response.results : [];
+                    const unreadCount = notifications.filter(n => !n.is_read).length;
+                    
+                    if (unreadCount > 0) {
+                        const badge = document.getElementById('notificationBadge');
+                        if (badge) {
+                            badge.textContent = unreadCount;
+                            badge.classList.remove('hidden');
+                        }
+                    }
                 }
             } catch (error) {
                 console.error('Error loading notifications:', error);
@@ -3007,12 +3008,13 @@
             
             try {
                 const response = await apiCall('/conversations/');
-                const conversations = Array.isArray(response) ? response : (response.results || []);
-                
-                // Calculate total unread messages across all conversations
-                let totalUnread = 0;
-                conversations.forEach(conv => {
-                    totalUnread += conv.unread_count || 0;
+                if (response && response.results) {
+                    const conversations = Array.isArray(response.results) ? response.results : [];
+                    
+                    // Calculate total unread messages across all conversations
+                    let totalUnread = 0;
+                    conversations.forEach(conv => {
+                        totalUnread += conv.unread_count || 0;
                 });
                 
                 if (totalUnread > 0) {
@@ -3021,8 +3023,9 @@
                     badge.classList.remove('hidden');
                 }
 
-                // Update floating messages button with recent avatars
-                updateFloatingMessagesButton(conversations);
+                    // Update floating messages button with recent avatars
+                    updateFloatingMessagesButton(conversations);
+                }
             } catch (error) {
                 console.error('Error loading message count:', error);
             }
@@ -3048,7 +3051,9 @@
             if (!authToken) return;
             try {
                 currentLoggedInUser = await apiCall('/profile/me/');
-                console.log('Current user loaded:', currentLoggedInUser.username);
+                if (currentLoggedInUser && currentLoggedInUser.username) {
+                    console.log('Current user loaded:', currentLoggedInUser.username);
+                }
             } catch (error) {
                 console.error('Failed to load current user:', error);
             }
